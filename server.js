@@ -115,17 +115,21 @@ async function generateViaAgent(prompt) {
         try {
           const payload = JSON.parse(evt.data);
           const sourceType = payload.content?.source_type;
-          console.log(`[agent]   message source_type=${sourceType} keys=${Object.keys(payload.content||{}).join(",")}`);
-          if (sourceType && sourceType !== "user") {
+          const finishReason = payload.content?.finish_reason;
+          console.log(`[agent]   message source_type=${sourceType} finish=${finishReason} keys=${Object.keys(payload.content||{}).join(",")}`);
+
+          // Tool-use messages (finish_reason=tool_use) are intermediate —
+          // the agent is calling tools (memory-search, think). Don't break;
+          // keep listening for the final response.
+          if (sourceType && sourceType !== "user" && finishReason !== "tool_use") {
             let agentText = payload.content?.content || payload.content?.text || "";
             if (!agentText && payload.content?.tool_calls) {
               for (const tc of payload.content.tool_calls) {
                 try {
                   const args = JSON.parse(tc.function?.arguments || "{}");
-                  if (args.context) { agentText = args.context; break; }
-                  if (args.message) { agentText = args.message; break; }
                   if (args.response) { agentText = args.response; break; }
-                  if (args.query) { agentText = args.query; break; }
+                  if (args.message) { agentText = args.message; break; }
+                  if (args.context) { agentText = args.context; break; }
                 } catch {}
               }
             }
