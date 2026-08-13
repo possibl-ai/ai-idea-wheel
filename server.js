@@ -91,6 +91,8 @@ async function generateViaAgent(prompt) {
   });
 
   let reply = "";
+  let gotStreamComplete = false;
+  let postCompleteDeadline = 0;
   const ac = new AbortController();
   const timeout = setTimeout(() => ac.abort(), 60000);
 
@@ -114,8 +116,9 @@ async function generateViaAgent(prompt) {
               for (const tc of payload.content.tool_calls) {
                 try {
                   const args = JSON.parse(tc.function?.arguments || "{}");
-                  agentText = args.context || args.message || args.response || "";
-                  if (agentText) break;
+                  if (args.context) { agentText = args.context; break; }
+                  if (args.message) { agentText = args.message; break; }
+                  if (args.response) { agentText = args.response; break; }
                 } catch {}
               }
             }
@@ -124,6 +127,10 @@ async function generateViaAgent(prompt) {
         } catch {}
       } else if (evt.type === "stream.complete") {
         if (reply) break;
+        gotStreamComplete = true;
+        postCompleteDeadline = Date.now() + 20000;
+      } else if (evt.type === "heartbeat") {
+        if (gotStreamComplete && Date.now() > postCompleteDeadline) break;
       }
     }
   } catch {
