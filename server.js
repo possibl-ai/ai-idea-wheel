@@ -125,16 +125,25 @@ async function generateViaAgent(prompt) {
                   if (args.context) { agentText = args.context; break; }
                   if (args.message) { agentText = args.message; break; }
                   if (args.response) { agentText = args.response; break; }
+                  if (args.query) { agentText = args.query; break; }
                 } catch {}
               }
-            }
-            if (!agentText) {
-              // Log full content to find the right field.
-              console.log(`[agent]   FULL MESSAGE: ${JSON.stringify(payload.content).slice(0,500)}`);
             }
             if (agentText) {
               console.log(`[agent]   agent text: ${agentText.slice(0,200)}`);
               reply = agentText; break;
+            }
+          }
+          // Tool execution messages (source_type undefined) carry the
+          // agent's actual response in the "output" field.
+          if (payload.content?.output) {
+            const out = payload.content.output;
+            if (typeof out === "string" && out.length > 10) {
+              console.log(`[agent]   tool output: ${out.slice(0,200)}`);
+              reply = out; break;
+            }
+            if (out && typeof out === "object" && out.text) {
+              reply = out.text; break;
             }
           }
         } catch {}
