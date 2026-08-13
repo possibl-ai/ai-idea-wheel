@@ -115,7 +115,7 @@ async function generateViaAgent(prompt) {
         try {
           const payload = JSON.parse(evt.data);
           const sourceType = payload.content?.source_type;
-          console.log(`[agent]   message source_type=${sourceType}`);
+          console.log(`[agent]   message source_type=${sourceType} keys=${Object.keys(payload.content||{}).join(",")}`);
           if (sourceType && sourceType !== "user") {
             let agentText = payload.content?.content || payload.content?.text || "";
             if (!agentText && payload.content?.tool_calls) {
@@ -127,6 +127,10 @@ async function generateViaAgent(prompt) {
                   if (args.response) { agentText = args.response; break; }
                 } catch {}
               }
+            }
+            if (!agentText) {
+              // Log full content to find the right field.
+              console.log(`[agent]   FULL MESSAGE: ${JSON.stringify(payload.content).slice(0,500)}`);
             }
             if (agentText) {
               console.log(`[agent]   agent text: ${agentText.slice(0,200)}`);
