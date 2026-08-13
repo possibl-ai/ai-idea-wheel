@@ -101,6 +101,57 @@ const HTML = `<!DOCTYPE html>
   .result-label { font-size: 12px; color: #5a6a8a; margin-bottom: 6px; }
   .result-idea { font-size: 18px; font-weight: 600; color: #8b9dc3; }
   .empty-hint { margin-top: 16px; color: #5a6a8a; font-size: 13px; font-style: italic; }
+
+  /* ── modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.25s ease-out;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    position: relative;
+    background: #1a1a2e;
+    border: 1px solid #4a6fa5;
+    border-radius: 18px;
+    padding: 40px 32px 36px;
+    max-width: 480px; width: 100%;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(74, 111, 165, 0.2);
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  .modal-label {
+    font-size: 12px; color: #5a6a8a; margin-bottom: 14px;
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+  }
+  .modal-idea {
+    font-size: 28px; font-weight: 700; color: #e0e0e0;
+    line-height: 1.35; word-wrap: break-word;
+    padding: 0 8px; margin-bottom: 26px;
+  }
+  .modal-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 36px; height: 36px; line-height: 36px;
+    background: transparent; border: 1px solid #2a2a4a;
+    border-radius: 50%; color: #e0e0e0; cursor: pointer;
+    font-size: 18px; font-weight: 700; padding: 0;
+    transition: all 0.2s;
+  }
+  .modal-close:hover {
+    background: #ff6b6b; border-color: #ff6b6b; color: #fff;
+  }
+  .modal-hint {
+    font-size: 12px; color: #5a6a8a; font-style: italic;
+    margin-top: 18px;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -138,6 +189,15 @@ const HTML = `<!DOCTYPE html>
     <div class="empty-hint" id="emptyHint">Submit some ideas first to fill the wheel!</div>
   </div>
 
+  <div class="modal-overlay" id="modal">
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose" onclick="closeModal()" aria-label="Close">&times;</button>
+      <div class="modal-label">Selected Idea</div>
+      <div class="modal-idea" id="modalIdea"></div>
+      <div class="modal-hint">Click the X to dismiss</div>
+    </div>
+  </div>
+
 <script>
 let ideas = [];
 let currentAngle = 0;
@@ -151,6 +211,8 @@ const spinBtn = document.getElementById("spinBtn");
 const resultEl = document.getElementById("result");
 const resultIdeaEl = document.getElementById("resultIdea");
 const emptyHint = document.getElementById("emptyHint");
+const modalEl = document.getElementById("modal");
+const modalIdeaEl = document.getElementById("modalIdea");
 
 const COLORS = [
   "#4a6fa5", "#5a8fa5", "#6a5fa5", "#5aa57a",
@@ -285,6 +347,7 @@ async function finishSpin(idx) {
   const selected = ideas[idx];
   resultIdeaEl.textContent = selected.text;
   resultEl.classList.add("show");
+  showModal(selected.text);
 
   // call the server to delete the breadcrumb
   try {
@@ -305,6 +368,15 @@ async function finishSpin(idx) {
     addMsg("Network error removing idea: " + err.message, "error");
     spinBtn.disabled = false;
   }
+}
+
+function showModal(text) {
+  modalIdeaEl.textContent = text;
+  modalEl.classList.add("show");
+}
+
+function closeModal() {
+  modalEl.classList.remove("show");
 }
 
 // ── submit idea ──
