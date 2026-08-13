@@ -138,21 +138,25 @@ async function generateViaAgent(prompt) {
               reply = agentText; break;
             }
           }
-          // Tool execution messages (source_type undefined) carry the
-          // agent's actual response in the "output" field.
+          // Tool execution messages (source_type undefined) carry tool
+          // output in the "output" field. The agent may call multiple
+          // tools (memory-search, think) before producing its final
+          // response. Don't break — accumulate the output and prefer
+          // the latest one, but keep listening for a "stop" message.
           if (payload.content?.output) {
             const out = payload.content.output;
             if (typeof out === "string" && out.length > 10) {
-              reply = out; break;
-            }
-            if (out && typeof out === "object") {
+              reply = out;
+            } else if (out && typeof out === "object") {
               const msg = out.message || out.text || out.content || out.result || out.response || "";
-              if (typeof msg === "string" && msg.length > 10) { reply = msg; break; }
-              if (out.context && typeof out.context === "string") { reply = out.context; break; }
-              // Last resort: stringify the whole object
-              const j = JSON.stringify(out);
-              if (j.length > 10) { reply = j; break; }
+              if (typeof msg === "string" && msg.length > 10) {
+                reply = msg;
+              } else if (out.context && typeof out.context === "string") {
+                reply = out.context;
+              }
             }
+            // Don't break — keep listening for more tool outputs or
+            // a final agent message with finish_reason=stop.
           }
         } catch {}
       } else if (evt.type === "stream.complete") {
