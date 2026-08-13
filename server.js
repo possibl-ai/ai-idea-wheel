@@ -90,7 +90,10 @@ async function generateViaAgent(prompt) {
     user_id: RCRT_USER_ID || undefined,
   });
 
+  console.log("[agent] chat.send OK, session:", chatResp.session_id);
+
   let reply = "";
+  let eventCount = 0;
   let gotStreamComplete = false;
   let postCompleteDeadline = 0;
   const ac = new AbortController();
@@ -98,11 +101,13 @@ async function generateViaAgent(prompt) {
 
   try {
     for await (const evt of client.chat.stream(chatResp.session_id, { signal: ac.signal })) {
+      eventCount++;
+      console.log(`[agent] evt#${eventCount} type=${evt.type} dataLen=${(evt.data||"").length}`);
       if (evt.type === "delta") {
         try {
           const payload = JSON.parse(evt.data);
           const chunk = payload.delta || payload.text || payload.content || "";
-          if (chunk) reply += chunk;
+          if (chunk) { reply += chunk; console.log(`[agent]   delta chunk: ${chunk.slice(0,80)}`); }
         } catch {
           reply += evt.data || "";
         }
@@ -110,6 +115,7 @@ async function generateViaAgent(prompt) {
         try {
           const payload = JSON.parse(evt.data);
           const sourceType = payload.content?.source_type;
+          console.log(`[agent]   message source_type=${sourceType}`);
           if (sourceType && sourceType !== "user") {
             let agentText = payload.content?.content || payload.content?.text || "";
             if (!agentText && payload.content?.tool_calls) {
@@ -122,20 +128,28 @@ async function generateViaAgent(prompt) {
                 } catch {}
               }
             }
-            if (agentText) { reply = agentText; break; }
+            if (agentText) {
+              console.log(`[agent]   agent text: ${agentText.slice(0,200)}`);
+              reply = agentText; break;
+            }
           }
         } catch {}
       } else if (evt.type === "stream.complete") {
+        console.log(`[agent]   stream.complete, reply so far: ${reply.length} chars`);
         if (reply) break;
         gotStreamComplete = true;
         postCompleteDeadline = Date.now() + 20000;
       } else if (evt.type === "heartbeat") {
-        if (gotStreamComplete && Date.now() > postCompleteDeadline) break;
+        if (gotStreamComplete && Date.now() > postCompleteDeadline) {
+          console.log("[agent]   heartbeat deadline exceeded");
+          break;
+        }
       }
     }
-  } catch {
-    // abort/timeout expected
+  } catch (e) {
+    console.log("[agent] stream error:", e.message);
   }
+  console.log(`[agent] done. events=${eventCount} reply=${reply.length} chars`);
   clearTimeout(timeout);
 
   // Fallback: fetch the agent's response breadcrumb directly.
