@@ -123,19 +123,31 @@ async function generateViaAgent(prompt) {
           // keep listening for the final response.
           if (sourceType && sourceType !== "user" && finishReason !== "tool_use") {
             let agentText = payload.content?.content || payload.content?.text || "";
-            if (!agentText && payload.content?.tool_calls) {
-              for (const tc of payload.content.tool_calls) {
-                try {
-                  const args = JSON.parse(tc.function?.arguments || "{}");
-                  if (args.response) { agentText = args.response; break; }
-                  if (args.message) { agentText = args.message; break; }
-                  if (args.context) { agentText = args.context; break; }
-                } catch {}
-              }
-            }
             if (agentText) {
               console.log(`[agent]   agent text: ${agentText.slice(0,200)}`);
               reply = agentText; break;
+            }
+          }
+          // For tool_use messages, check if it's the "think" tool —
+          // the agent often puts its full response in the think tool's
+          // arguments as the "query" or "context" field.
+          if (finishReason === "tool_use" && payload.content?.tool_calls) {
+            for (const tc of payload.content.tool_calls) {
+              const toolName = tc.function?.name || "";
+              console.log(`[agent]   tool_use: ${toolName}`);
+              if (toolName === "think" || toolName === "ask" || toolName === "respond") {
+                try {
+                  const args = JSON.parse(tc.function?.arguments || "{}");
+                  // The think tool's "query" or "context" often contains
+                  // the agent's full generated response.
+                  const text = args.query || args.context || args.message || args.response || args.thought || "";
+                  if (text && text.length > 20) {
+                    console.log(`[agent]   think content: ${text.slice(0,200)}`);
+                    reply = text;
+                    // Don't break — a later event might have the real final response.
+                  }
+                } catch {}
+              }
             }
           }
           // Tool execution messages (source_type undefined) carry tool
