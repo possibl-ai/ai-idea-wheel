@@ -94,10 +94,7 @@ async function generateViaAgent(prompt) {
     user_id: RCRT_USER_ID || undefined,
   });
 
-  console.log("[agent] chat.send OK, session:", chatResp.session_id);
-
   let reply = "";
-  let eventCount = 0;
   let gotStreamComplete = false;
   let postCompleteDeadline = 0;
   const ac = new AbortController();
@@ -105,13 +102,11 @@ async function generateViaAgent(prompt) {
 
   try {
     for await (const evt of client.chat.stream(chatResp.session_id, { signal: ac.signal })) {
-      eventCount++;
-      console.log(`[agent] evt#${eventCount} type=${evt.type} dataLen=${(evt.data||"").length}`);
       if (evt.type === "delta") {
         try {
           const payload = JSON.parse(evt.data);
           const chunk = payload.delta || payload.text || payload.content || "";
-          if (chunk) { reply += chunk; console.log(`[agent]   delta chunk: ${chunk.slice(0,80)}`); }
+          if (chunk) reply += chunk;
         } catch {
           reply += evt.data || "";
         }
@@ -120,77 +115,49 @@ async function generateViaAgent(prompt) {
           const payload = JSON.parse(evt.data);
           const sourceType = payload.content?.source_type;
           const finishReason = payload.content?.finish_reason;
-          console.log(`[agent]   message source_type=${sourceType} finish=${finishReason} keys=${Object.keys(payload.content||{}).join(",")}`);
 
-          // Tool-use messages (finish_reason=tool_use) are intermediate —
-          // the agent is calling tools (memory-search, think). Don't break;
-          // keep listening for the final response.
+          // Final agent response (finish_reason=stop, not tool_use)
           if (sourceType && sourceType !== "user" && finishReason !== "tool_use") {
-            let agentText = payload.content?.content || payload.content?.text || "";
-            if (agentText) {
-              console.log(`[agent]   agent text: ${agentText.slice(0,200)}`);
-              reply = agentText; break;
-            }
+            const agentText = payload.content?.content || payload.content?.text || "";
+            if (agentText) { reply = agentText; break; }
           }
-          // For tool_use messages, check if it's the "think" tool —
-          // the agent often puts its full response in the think tool's
-          // arguments as the "query" or "context" field.
+          // The agent puts its generated response in the "think" tool's
+          // arguments since it never sends a finish_reason=stop message.
           if (finishReason === "tool_use" && payload.content?.tool_calls) {
             for (const tc of payload.content.tool_calls) {
               const toolName = tc.function?.name || "";
-              console.log(`[agent]   tool_use: ${toolName}`);
               if (toolName === "think" || toolName === "ask" || toolName === "respond") {
                 try {
                   const args = JSON.parse(tc.function?.arguments || "{}");
-                  // The think tool's "query" or "context" often contains
-                  // the agent's full generated response.
                   const text = args.query || args.context || args.message || args.response || args.thought || "";
-                  if (text && text.length > 20) {
-                    console.log(`[agent]   think content: ${text.slice(0,200)}`);
-                    reply = text;
-                    // Don't break — a later event might have the real final response.
-                  }
+                  if (text && text.length > 20) reply = text;
                 } catch {}
               }
             }
           }
-          // Tool execution messages (source_type undefined) carry tool
-          // output in the "output" field. The agent may call multiple
-          // tools (memory-search, think) before producing its final
-          // response. Don't break — accumulate the output and prefer
-          // the latest one, but keep listening for a "stop" message.
+          // Tool execution output (source_type undefined, has "output")
           if (payload.content?.output) {
             const out = payload.content.output;
             if (typeof out === "string" && out.length > 10) {
               reply = out;
             } else if (out && typeof out === "object") {
               const msg = out.message || out.text || out.content || out.result || out.response || "";
-              if (typeof msg === "string" && msg.length > 10) {
-                reply = msg;
-              } else if (out.context && typeof out.context === "string") {
-                reply = out.context;
-              }
+              if (typeof msg === "string" && msg.length > 10) reply = msg;
+              else if (out.context && typeof out.context === "string") reply = out.context;
             }
-            // Don't break — keep listening for more tool outputs or
-            // a final agent message with finish_reason=stop.
           }
         } catch {}
       } else if (evt.type === "stream.complete") {
-        console.log(`[agent]   stream.complete, reply so far: ${reply.length} chars`);
         if (reply) break;
         gotStreamComplete = true;
         postCompleteDeadline = Date.now() + 20000;
       } else if (evt.type === "heartbeat") {
-        if (gotStreamComplete && Date.now() > postCompleteDeadline) {
-          console.log("[agent]   heartbeat deadline exceeded");
-          break;
-        }
+        if (gotStreamComplete && Date.now() > postCompleteDeadline) break;
       }
     }
-  } catch (e) {
-    console.log("[agent] stream error:", e.message);
+  } catch {
+    // abort/timeout expected
   }
-  console.log(`[agent] done. events=${eventCount} reply=${reply.length} chars`);
   clearTimeout(timeout);
 
   // Fallback: fetch the agent's response breadcrumb directly.
