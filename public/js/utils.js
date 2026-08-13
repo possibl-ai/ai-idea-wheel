@@ -3,7 +3,7 @@ export const $ = (s) => document.querySelector(s);
 export function esc(s) {
   return String(s == null ? "" : s).replace(
     /[&<>"']/g,
-    (c) => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c])
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
 }
 
