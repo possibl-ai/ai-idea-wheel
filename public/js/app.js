@@ -45,7 +45,7 @@ const appHandlers = {
 
 async function load() {
   try {
-    state.ideas = await api("GET", "/ideas");
+    state.ideas = (await api("GET", "/ideas")).ideas || [];
     setConn(true);
   } catch {
     setConn(false);
