@@ -142,18 +142,16 @@ async function generateViaAgent(prompt) {
           // agent's actual response in the "output" field.
           if (payload.content?.output) {
             const out = payload.content.output;
-            console.log(`[agent]   output type=${typeof out} keys=${typeof out === "object" ? Object.keys(out).join(",") : ""} preview=${String(out).slice(0,300)}`);
             if (typeof out === "string" && out.length > 10) {
               reply = out; break;
             }
             if (out && typeof out === "object") {
-              if (out.text) { reply = out.text; break; }
-              if (out.content) { reply = out.content; break; }
-              if (out.result) { reply = out.result; break; }
-              // Maybe it's an array of results
-              if (Array.isArray(out) && out.length > 0) { reply = JSON.stringify(out); break; }
-              // Or the whole object as JSON
-              reply = JSON.stringify(out); break;
+              const msg = out.message || out.text || out.content || out.result || out.response || "";
+              if (typeof msg === "string" && msg.length > 10) { reply = msg; break; }
+              if (out.context && typeof out.context === "string") { reply = out.context; break; }
+              // Last resort: stringify the whole object
+              const j = JSON.stringify(out);
+              if (j.length > 10) { reply = j; break; }
             }
           }
         } catch {}
