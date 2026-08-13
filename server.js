@@ -61,6 +61,7 @@ const CATEGORY_COLORS = {
   "Creative AI & Gaming": "#8b5cf6",
   "Fun & Experimental": "#06b6d4",
 };
+const CATEGORIES = Object.keys(CATEGORY_COLORS);
 
 // ── AI generation via RCRT chat agent ──────────────────────────────────────
 // Instead of calling a Gemini API key directly, we route idea generation
