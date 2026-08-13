@@ -1,10 +1,11 @@
 {
   "name": "ai-idea-wheel",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
   },
   "dependencies": {
     "@rcrt/sdk": "file:rcrt-sdk-0.1.1.tgz"

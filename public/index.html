@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Idea Wheel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Questrial&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="wordmark">possibl.ai</div>
+    <div class="eyebrow">AI Lab<span class="sep">/</span>Idea Wheel</div>
+    <h1 class="title">Spin up what we <span class="grad">build next</span></h1>
+    <p class="lede">Drop an AI idea in the box any time. Then spin the wheel.</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-view="dial" aria-selected="true">Dial</button>
+    <button class="tab" role="tab" data-view="submit" aria-selected="false">Submit</button>
+    <button class="tab" role="tab" data-view="brainstorm" aria-selected="false">Brainstorm</button>
+    <button class="tab" role="tab" data-view="pool" aria-selected="false">Pool</button>
+    <button class="tab" role="tab" data-view="fame" aria-selected="false">Hall of Fame</button>
+  </nav>
+
+  <!-- Dial view -->
+  <section class="view on" id="view-dial">
+    <div class="stage">
+      <div class="dial-shell">
+        <svg class="dial" viewBox="0 0 400 400" role="img" aria-label="Idea selection dial">
+          <circle cx="200" cy="200" r="196" fill="#FEFCF8"/>
+          <circle cx="200" cy="200" r="191" fill="none" stroke="rgba(20,16,30,.07)" stroke-width="10"/>
+          <g id="plate" style="transform-origin:200px 200px"></g>
+          <circle cx="200" cy="200" r="33" fill="#FEFCF8" stroke="rgba(20,16,30,.08)" stroke-width="1.5"/>
+          <circle cx="200" cy="200" r="9" fill="url(#hub)"/>
+          <defs>
+            <linearGradient id="hub" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#A655F7"/><stop offset="1" stop-color="#22D3EE"/>
+            </linearGradient>
+          </defs>
+          <g id="ptr">
+            <circle class="lamp" id="lamp" cx="200" cy="19" r="8"/>
+            <path d="M200 50 L189 22 L211 22 Z" fill="url(#hub)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="controls" id="controls"></div>
+    </div>
+  </section>
+
+  <!-- Submit view -->
+  <section class="view" id="view-submit">
+    <div class="card">
+      <label class="field-l" for="idea-title">Idea title <span class="opt">(required)</span></label>
+      <input id="idea-title" class="field" maxlength="120" placeholder="e.g. Real-time multimodal voice translator">
+
+      <label class="field-l" for="idea-desc">Short description <span class="opt">(optional)</span></label>
+      <textarea id="idea-desc" class="field" maxlength="500" placeholder="What will attendees build, test, or learn?"></textarea>
+
+      <div class="grid-2">
+        <div>
+          <label class="field-l" for="idea-cat">Category</label>
+          <select id="idea-cat" class="field"></select>
+        </div>
+        <div>
+          <label class="field-l" for="idea-diff">Difficulty</label>
+          <select id="idea-diff" class="field">
+            <option>Beginner</option><option selected>Intermediate</option>
+            <option>Advanced</option><option>Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label class="field-l" for="idea-hours">Estimated hours (max 1)</label>
+          <select id="idea-hours" class="field">
+            <option value="0.5">30m</option>
+            <option value="0.75" selected>45m</option>
+            <option value="1">60m</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-l" for="idea-tag">Tag <span class="opt">(optional)</span></label>
+          <input id="idea-tag" class="field" maxlength="40" placeholder="e.g. Voice, RAG, Agents">
+        </div>
+      </div>
+
+      <div class="submit-foot">
+        <button class="btn btn-grad" id="addBtn" disabled>Add to the wheel</button>
+        <span class="anon">No names collected. Fully anonymous.</span>
+      </div>
+      <div class="flash" id="flash"></div>
+    </div>
+  </section>
+
+  <!-- Brainstorm view -->
+  <section class="view" id="view-brainstorm">
+    <div class="ai-panel">
+      <h2>AI Brainstorm Assistant</h2>
+      <div class="sub">Powered by the RCRT agent pipeline — generates hands-on AI Lab session ideas you can add to the wheel.</div>
+      <div class="ai-input">
+        <input id="brain-topic" class="field" placeholder="Type focus area (e.g. Autonomous Coding, Multimodal RAG)..." maxlength="120">
+        <button class="btn btn-grad" id="brainBtn">Brainstorm Ideas</button>
+      </div>
+      <div class="preset-row" id="presetRow"></div>
+      <div id="brain-status" class="flash" style="margin-top:14px"></div>
+      <div class="ai-results" id="aiResults"></div>
+    </div>
+  </section>
+
+  <!-- Pool view -->
+  <section class="view" id="view-pool">
+    <div class="pool-head">
+      <h2 class="questrial">Idea Pool</h2>
+      <div id="poolCounts" class="mono-sm"></div>
+    </div>
+    <div id="poolBody"></div>
+  </section>
+
+  <!-- Hall of Fame view -->
+  <section class="view" id="view-fame">
+    <div class="fame-head">
+      <h2 class="questrial">Hall of Fame</h2>
+      <p class="lede">Ideas the wheel selected and the team shipped.</p>
+    </div>
+    <div id="fameBody"></div>
+  </section>
+</div>
+
+<div class="audio-toggle" id="audioToggle" title="Toggle sound effects">
+  <span id="audioIcon">&#128266;</span><span id="audioLabel">Sound on</span>
+</div>
+<div class="conn" id="conn"><span class="dot"></span><span id="connText">Connected</span></div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
