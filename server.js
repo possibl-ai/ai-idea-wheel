@@ -69,13 +69,16 @@ const CATEGORY_COLORS = {
 // defensively and fall back to prose-splitting if the model doesn't comply.
 
 const BRAINSTORM_PROMPT = (topic) =>
-  `Brainstorm 3 creative, hands-on AI Lab session ideas for a weekly tech team meetup. ` +
+  `Generate 3 creative, hands-on AI Lab session ideas for a weekly tech team meetup. ` +
   `Focus topic: "${topic || "General AI & fast prototyping"}". ` +
   `Each project MUST be buildable in UNDER 1 HOUR. ` +
-  `Respond with ONLY a JSON array (no markdown, no prose). Each element: ` +
-  `{ "title": string, "description": string, "category": one of ${JSON.stringify(Object.keys(CATEGORY_COLORS))}, ` +
-  `"difficulty": "Beginner"|"Intermediate"|"Advanced"|"Expert", "estimatedHours": number 0.5–1.0, ` +
-  `"tags": string[3], "objectives": string[3] }.`;
+  `DO NOT use the ask tool or memory-search tool. DO NOT ask me any questions. ` +
+  `Respond IMMEDIATELY with your ideas as plain text, using this format for each idea:\n` +
+  `1. **Title:** [creative title]\n   **Description:** [1-2 sentence description]\n` +
+  `   **Category:** [one of: ${Object.keys(CATEGORY_COLORS).join(", ")}]\n` +
+  `   **Difficulty:** [Beginner/Intermediate/Advanced/Expert]\n` +
+  `   **EstimatedHours:** [0.5 or 0.75 or 1]\n` +
+  `Generate exactly 3 ideas. Start with "1." immediately.`;
 
 const ENHANCE_PROMPT = (title, description) =>
   `Enhance this AI lab session idea into a quick hands-on project buildable in under 1 hour. ` +
