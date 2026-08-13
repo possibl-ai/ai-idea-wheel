@@ -1,4 +1,4 @@
-export const API = "/api";
+export const API = "api";
 
 export const CATEGORIES = [
   "LLM & Agents",
