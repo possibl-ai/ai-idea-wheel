@@ -7,6 +7,7 @@ import { initSubmitView } from "./views/submitView.js";
 import { initBrainstormView } from "./views/brainstormView.js";
 import { initPoolView, renderPoolView } from "./views/poolView.js";
 import { renderFameView } from "./views/fameView.js";
+import { initTeamsView } from "./views/teamsView.js";
 
 function setConn(ok) {
   const c = $("#conn");
@@ -61,6 +62,7 @@ initDialView(appHandlers);
 initSubmitView(appHandlers);
 initBrainstormView(appHandlers);
 initPoolView(appHandlers);
+initTeamsView(appHandlers);
 
 document.querySelectorAll(".tab").forEach((t) => {
   t.onclick = () => switchView(t.dataset.view);

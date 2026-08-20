@@ -28,6 +28,7 @@
     <button class="tab" role="tab" data-view="brainstorm" aria-selected="false">Brainstorm</button>
     <button class="tab" role="tab" data-view="pool" aria-selected="false">Pool</button>
     <button class="tab" role="tab" data-view="fame" aria-selected="false">Hall of Fame</button>
+    <button class="tab" role="tab" data-view="teams" aria-selected="false">Teams</button>
   </nav>
 
   <!-- Dial view -->
@@ -132,6 +133,34 @@
       <p class="lede">Ideas the wheel selected and the team shipped.</p>
     </div>
     <div id="fameBody"></div>
+  </section>
+
+  <!-- Teams view -->
+  <section class="view" id="view-teams">
+    <div class="teams-layout">
+      <div class="card teams-input-card">
+        <h2 class="questrial">Team Randomizer</h2>
+        <p class="lede">Enter participant names, one per line. Pick a team size and shuffle.</p>
+
+        <label class="field-l" for="team-names">Participants</label>
+        <textarea id="team-names" class="field" placeholder="Alice&#10;Bob&#10;Cara&#10;Dion&#10;Eve&#10;Finn"></textarea>
+
+        <div class="grid-2" style="margin-top:18px">
+          <div>
+            <label class="field-l" for="team-size">Team size</label>
+            <select id="team-size" class="field"></select>
+          </div>
+        </div>
+
+        <div class="submit-foot">
+          <button class="btn btn-grad" id="generateTeamsBtn" disabled>Generate teams</button>
+          <button class="btn btn-ghost" id="reshuffleBtn" style="display:none">Reshuffle</button>
+        </div>
+        <div class="flash" id="teamsFlash"></div>
+      </div>
+
+      <div id="teamsOutput" class="teams-output"></div>
+    </div>
   </section>
 </div>
 

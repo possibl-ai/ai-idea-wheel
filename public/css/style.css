@@ -165,6 +165,23 @@ select.field{cursor:pointer;appearance:none;-webkit-appearance:none;
 .fame-item:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(120,60,180,.06)}
 .fame-item .top-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
+/* teams */
+.teams-layout{display:flex;flex-direction:column;gap:20px}
+.teams-input-card h2{font-size:22px;margin-bottom:4px}
+.teams-input-card .lede{margin-bottom:6px}
+.teams-output{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.team-card{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:18px;
+  border-top:4px solid var(--team-color);transition:transform .2s,box-shadow .2s}
+.team-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(120,60,180,.08)}
+.team-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.team-badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--team-color);
+  padding:4px 10px;border-radius:8px}
+.team-count{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.team-members{list-style:none;display:flex;flex-direction:column;gap:6px}
+.team-members li{font-size:14px;line-height:1.35;padding:4px 0;border-bottom:1px solid var(--panel-line)}
+.team-members li:last-child{border-bottom:none}
+
 /* fixed UI */
 .conn{position:fixed;bottom:14px;right:16px;z-index:2;font-family:"JetBrains Mono",ui-monospace,monospace;
   font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:6px}
@@ -182,6 +199,7 @@ select.field{cursor:pointer;appearance:none;-webkit-appearance:none;
   nav.tabs{gap:18px}
   .ai-input{flex-direction:column}
   .grid-2{grid-template-columns:1fr}
+  .teams-output{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){
   .lamp.lit{animation:none;filter:drop-shadow(0 0 8px var(--purple))}
